@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card" style="max-width: 600px; margin: 0 auto; text-align: center;">
+    <h2>Mark Attendance</h2>
+    <p style="color: var(--text-light); margin-bottom: 1.5rem;">Please look at the camera to mark your attendance.</p>
+    
+    <div id="alertBox" class="alert"></div>
+
+    <div style="position: relative; width: 100%; max-width: 400px; margin: 0 auto 1.5rem auto; border-radius: 8px; overflow: hidden; background: #000; display: inline-block; border: 4px solid transparent; transition: border-color 0.3s;" id="videoContainer">
+        <video id="webcam" autoplay playsinline style="width: 100%; display: block;"></video>
+        <canvas id="canvas" style="display: none;"></canvas>
+    </div>
+
+    <div>
+        <button id="startBtn" class="btn btn-primary" style="width: 100%;">Start Scanning</button>
+        <button id="stopBtn" class="btn btn-secondary" style="width: 100%; display: none; margin-top: 1rem;">Stop Scanning</button>
+    </div>
+</div>
+
+<script>
+    const video = document.getElementById('webcam');
+    const canvas = document.getElementById('canvas');
+    const startBtn = document.getElementById('startBtn');
+    const stopBtn = document.getElementById('stopBtn');
+    const alertBox = document.getElementById('alertBox');
+    const videoContainer = document.getElementById('videoContainer');
+    
+    let isScanning = false;
+    let scanInterval;
+
+    // Access webcam
+    navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+            video.srcObject = stream;
+        })
+        .catch(err => {
+            showAlert('error', 'Camera access denied or unavaliable.');
+            console.error(err);
+        });
+
+    function showAlert(type, message) {
+        alertBox.className = `alert ${type}`;
+        alertBox.textContent = message;
+    }
+
+    async function processFrame() {
+        if (!isScanning) return;
+
+        const context = canvas.getContext('2d');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        const imageData = canvas.toDataURL('image/jpeg');
+
+        try {
+            const response = await fetch('/api/recognize_face/', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: imageData })
+            });
+
+            const data = await response.json();
+            
+            if (data.status === 'success') {
+                videoContainer.style.borderColor = '#10b981'; // green
+                showAlert('success', data.message);
+                
+                // Pause scanning briefly after success
+                stopScanning();
+                setTimeout(() => {
+                    videoContainer.style.borderColor = 'transparent';
+                    showAlert('warning', 'Ready for next person');
+                    startScanning();
+                }, 3000); // 3-second cooldown
+
+            } else if (data.status === 'warning') {
+                videoContainer.style.borderColor = '#f59e0b'; // orange
+                showAlert('warning', data.message);
+                
+                // Pause scanning
+                stopScanning();
+                setTimeout(() => {
+                    videoContainer.style.borderColor = 'transparent';
+                    showAlert('warning', 'Ready for next person');
+                    startScanning();
+                }, 3000);
+            } else {
+                // error / unknown person
+                videoContainer.style.borderColor = '#ef4444'; // red
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    }
+
+    function startScanning() {
+        isScanning = true;
+        startBtn.style.display = 'none';
+        stopBtn.style.display = 'inline-block';
+        videoContainer.style.borderColor = 'transparent';
+        showAlert('warning', 'Scanning for faces...');
+        
+        // Process a frame every 1.5 seconds to reduce server load
+        scanInterval = setInterval(processFrame, 1500);
+    }
+
+    function stopScanning() {
+        isScanning = false;
+        startBtn.style.display = 'inline-block';
+        stopBtn.style.display = 'none';
+        clearInterval(scanInterval);
+    }
+
+    startBtn.addEventListener('click', startScanning);
+    stopBtn.addEventListener('click', () => {
+        stopScanning();
+        showAlert('warning', 'Scanning stopped.');
+        videoContainer.style.borderColor = 'transparent';
+    });
+</script>
+{% endblock %}

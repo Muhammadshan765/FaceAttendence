@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <h2>Attendance History</h2>
+        <a href="{% url 'export_csv' %}" class="btn btn-secondary">Download CSV</a>
+    </div>
+
+    {% if records %}
+    <table>
+        <thead>
+            <tr>
+                <th>Student Name</th>
+                <th>Date</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for record in records %}
+            <tr>
+                <td style="font-weight: 500;">{{ record.student.name }}</td>
+                <td>{{ record.date }}</td>
+                <td>{{ record.time }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: var(--text-light); text-align: center; padding: 2rem 0;">No attendance records available.</p>
+    {% endif %}
+</div>
+{% endblock %}
