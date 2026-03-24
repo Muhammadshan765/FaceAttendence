@@ -93,6 +93,7 @@
     function showAlert(type, message) {
         alertBox.className = `alert ${type}`;
         alertBox.textContent = message;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     captureBtn.addEventListener('click', async () => {
@@ -121,8 +122,15 @@
             document.getElementById('studentDepartmentError').style.display = 'block';
             isValid = false;
         }
+        const nameRegex = /^[A-Za-z]+$/;
+        const nameErrorEl = document.getElementById('studentNameError');
         if (!name) {
-            document.getElementById('studentNameError').style.display = 'block';
+            nameErrorEl.textContent = 'Student Name is required';
+            nameErrorEl.style.display = 'block';
+            isValid = false;
+        } else if (!nameRegex.test(name)) {
+            nameErrorEl.textContent = 'Student Name can only contain letters (no spaces allowed)';
+            nameErrorEl.style.display = 'block';
             isValid = false;
         }
 
