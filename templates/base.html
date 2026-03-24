@@ -1,160 +1,129 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Face Recognition Attendance</title>
-    <!-- Use Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS (Local) -->
+    <script src="{% static 'css/tailwind-cdn.js' %}"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root {
-            --primary: #4f46e5;
-            --primary-hover: #4338ca;
-            --secondary: #10b981;
-            --bg-color: #f3f4f6;
-            --surface: #ffffff;
-            --text-main: #111827;
-            --text-light: #6b7280;
-            --border: #e5e7eb;
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.70);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.4);
         }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Inter', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .navbar {
-            background: var(--surface);
-            padding: 1rem 2rem;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .navbar .brand {
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--primary);
-            text-decoration: none;
-        }
-
-        .nav-links {
-            display: flex;
-            gap: 1.5rem;
-        }
-
-        .nav-links a {
-            text-decoration: none;
-            color: var(--text-light);
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .nav-links a:hover {
-            color: var(--primary);
-        }
-
-        .container {
-            max-width: 1200px;
-            margin: 2rem auto;
-            padding: 0 1rem;
-            flex: 1;
-            width: 100%;
-        }
-
-        .card {
-            background: var(--surface);
-            border-radius: 12px;
-            padding: 2rem;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0.5rem 1rem;
-            border-radius: 6px;
-            font-weight: 500;
-            cursor: pointer;
-            border: none;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn-primary {
-            background-color: var(--primary);
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-        }
-
-        .btn-secondary {
-            background-color: var(--secondary);
-            color: white;
-        }
-
-        /* Alert styling */
+        /* Hide scrollbar for clean look in tables if scroll needed */
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        
+        /* Subtle generic alert styling if used via original JS */
         .alert {
             padding: 1rem;
-            border-radius: 6px;
-            margin-bottom: 1rem;
+            border-radius: 0.75rem;
+            margin-bottom: 1.5rem;
             display: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-left-width: 4px;
         }
-        .alert.error { background-color: #fee2e2; color: #991b1b; display: block; }
-        .alert.success { background-color: #d1fae5; color: #065f46; display: block; }
-        .alert.warning { background-color: #fef3c7; color: #92400e; display: block; }
-
-        /* Tables */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1rem;
-        }
-        th, td {
-            text-align: left;
-            padding: 0.75rem 1rem;
-            border-bottom: 1px solid var(--border);
-        }
-        th {
-            background-color: #f9fafb;
-            font-weight: 600;
-            color: var(--text-light);
-            text-transform: uppercase;
-            font-size: 0.85rem;
-        }
-        tr:hover { background-color: #f9fafb; }
-
-        /* Titles */
-        h1, h2 { margin-bottom: 1.5rem; }
+        .alert.error { background-color: #fef2f2; color: #991b1b; border-left-color: #ef4444; display: block; }
+        .alert.success { background-color: #ecfdf5; color: #065f46; border-left-color: #10b981; display: block; }
+        .alert.warning { background-color: #fffbeb; color: #92400e; border-left-color: #f59e0b; display: block; }
     </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#fff1f2',
+                            100: '#ffe4e6',
+                            200: '#fecdd3',
+                            300: '#fda4af',
+                            400: '#fb7185',
+                            500: '#f43f5e', // Premium Rose
+                            600: '#e11d48',
+                            700: '#be123c',
+                            800: '#9f1239',
+                            900: '#881337',
+                        }
+                    },
+                    animation: {
+                        'blob': 'blob 7s infinite',
+                    },
+                    keyframes: {
+                        blob: {
+                            '0%': { transform: 'translate(0px, 0px) scale(1)' },
+                            '33%': { transform: 'translate(30px, -50px) scale(1.1)' },
+                            '66%': { transform: 'translate(-20px, 20px) scale(0.9)' },
+                            '100%': { transform: 'translate(0px, 0px) scale(1)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
 </head>
-<body>
-    <nav class="navbar">
-        <a href="{% url 'dashboard' %}" class="brand">FaceAttend</a>
-        <div class="nav-links">
-            <a href="{% url 'dashboard' %}">Dashboard</a>
-            <a href="{% url 'register' %}">Register User</a>
-            <a href="{% url 'recognize' %}">Mark Attendance</a>
-            <a href="{% url 'history' %}">Records</a>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col relative selection:bg-brand-500 selection:text-white overflow-x-hidden">
+
+    <!-- Decorative Animated Background Gradients -->
+    <div class="fixed inset-0 z-[-1] overflow-hidden pointer-events-none bg-slate-50/50">
+        <div class="absolute top-0 -left-10 w-96 h-96 bg-rose-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-blob"></div>
+        <div class="absolute top-0 -right-10 w-96 h-96 bg-amber-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-blob" style="animation-delay: 2s;"></div>
+        <div class="absolute -bottom-8 left-20 w-96 h-96 bg-fuchsia-300 rounded-full mix-blend-multiply filter blur-[100px] opacity-40 animate-blob" style="animation-delay: 4s;"></div>
+    </div>
+
+    <!-- Modern Glass Navbar -->
+    <nav class="glass-nav sticky top-0 z-50 transition-all duration-300">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-[4.5rem]">
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center">
+                    <a href="{% url 'dashboard' %}" class="flex items-center gap-3 group">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-rose-500 to-amber-500 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-rose-500/30 group-hover:shadow-rose-500/50 group-hover:scale-105 transition-all duration-300">
+                            F
+                        </div>
+                        <span class="font-bold text-2xl text-slate-800 tracking-tight">FaceAttend</span>
+                    </a>
+                </div>
+                
+                <!-- Desktop Nav Links -->
+                <div class="hidden md:flex md:space-x-2 items-center">
+                    <a href="{% url 'dashboard' %}" class="text-slate-600 hover:text-brand-600 hover:bg-slate-100/50 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">Dashboard</a>
+                    <a href="{% url 'register' %}" class="text-slate-600 hover:text-brand-600 hover:bg-slate-100/50 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">Register User</a>
+                    <a href="{% url 'history' %}" class="text-slate-600 hover:text-brand-600 hover:bg-slate-100/50 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all">Records</a>
+                    
+                    <div class="w-px h-6 bg-slate-200 mx-2"></div> <!-- Divider -->
+                    
+                    <!-- Primary CTA -->
+                    <a href="{% url 'recognize' %}" class="ml-2 inline-flex items-center justify-center px-5 py-2.5 rounded-full shadow-lg shadow-brand-500/30 text-sm font-bold text-white bg-gradient-to-r from-rose-500 to-amber-500 hover:from-rose-400 hover:to-amber-400 transition-all hover:-translate-y-0.5 active:translate-y-0">
+                        <svg class="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path></svg>
+                        Scan Face
+                    </a>
+                </div>
+            </div>
         </div>
     </nav>
 
-    <main class="container">
+    <!-- Main Content Wrapper -->
+    <main class="flex-grow max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 md:py-12 flex flex-col relative z-10">
         {% block content %}{% endblock %}
     </main>
+
+    <footer class="mt-auto py-6 text-center text-sm text-slate-400 font-medium">
+        &copy; 2026 FaceAttend System. Powered by AI.
+    </footer>
+
 </body>
 </html>
