@@ -3,6 +3,15 @@ import numpy as np
 import cv2
 import json
 
+try:
+    from deepface import DeepFace
+    # Warm up the model on server start so the first request isn't slow
+    print("Pre-loading Facenet model...")
+    DeepFace.build_model("Facenet")
+    print("Facenet model pre-loaded successfully!")
+except ImportError:
+    pass
+
 def get_face_encoding(image_base64):
     try:
         from deepface import DeepFace
