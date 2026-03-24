@@ -1,6 +1,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<style>
+    .error-text {
+        color: #dc2626;
+        font-size: 0.85rem;
+        text-align: left;
+        margin-top: -0.5rem;
+        margin-bottom: 1rem;
+        display: none;
+    }
+</style>
 <div class="card" style="max-width: 600px; margin: 0 auto; text-align: center;">
     <h2>Register New Student</h2>
     
@@ -10,6 +21,7 @@
         <label for="studentId" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Student ID</label>
         <input type="text" id="studentId" placeholder="e.g. CS123" 
                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+        <div id="studentIdError" class="error-text">Student ID is required</div>
                
         <label for="studentYear" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Year</label>
         <select id="studentYear" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
@@ -19,6 +31,7 @@
             <option value="3rd Year">3rd Year</option>
             <option value="4th Year">4th Year</option>
         </select>
+        <div id="studentYearError" class="error-text">Year is required</div>
 
         <label for="studentGender" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Gender</label>
         <select id="studentGender" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
@@ -27,6 +40,7 @@
             <option value="Female">Female</option>
             <option value="Other">Other</option>
         </select>
+        <div id="studentGenderError" class="error-text">Gender is required</div>
 
         <label for="studentDepartment" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Department</label>
         <select id="studentDepartment" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
@@ -37,10 +51,12 @@
             <option value="ME">Mechanical Engineering</option>
             <option value="CE">Civil Engineering</option>
         </select>
+        <div id="studentDepartmentError" class="error-text">Department is required</div>
 
         <label for="studentName" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Student Name</label>
         <input type="text" id="studentName" placeholder="John Doe" 
-               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px;">
+               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+        <div id="studentNameError" class="error-text">Student Name is required</div>
     </div>
 
     <div style="position: relative; width: 100%; max-width: 400px; margin: 0 auto 1.5rem auto; border-radius: 8px; overflow: hidden; background: #000; display: inline-block;">
@@ -86,10 +102,31 @@
         const gender = studentGenderSelect.value;
         const department = studentDepartmentSelect.value;
 
-        if (!studentId || !year || !gender || !department || !name) {
-            showAlert('error', 'Please fill in Student ID, Year, Gender, Department, and Name.');
-            return;
+        let isValid = true;
+        document.querySelectorAll('.error-text').forEach(el => el.style.display = 'none');
+
+        if (!studentId) {
+            document.getElementById('studentIdError').style.display = 'block';
+            isValid = false;
         }
+        if (!year) {
+            document.getElementById('studentYearError').style.display = 'block';
+            isValid = false;
+        }
+        if (!gender) {
+            document.getElementById('studentGenderError').style.display = 'block';
+            isValid = false;
+        }
+        if (!department) {
+            document.getElementById('studentDepartmentError').style.display = 'block';
+            isValid = false;
+        }
+        if (!name) {
+            document.getElementById('studentNameError').style.display = 'block';
+            isValid = false;
+        }
+
+        if (!isValid) return;
 
         // Draw video frame to canvas
         const context = canvas.getContext('2d');
@@ -114,12 +151,14 @@
             const data = await response.json();
             
             if (data.status === 'success') {
-                showAlert('success', data.message);
-                studentNameInput.value = '';
-                studentIdInput.value = '';
-                studentYearSelect.value = '';
-                studentGenderSelect.value = '';
-                studentDepartmentSelect.value = '';
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Registration Successful',
+                    text: data.message,
+                    confirmButtonColor: '#4f46e5'
+                }).then(() => {
+                    window.location.href = "{% url 'recognize' %}";
+                });
             } else {
                 showAlert('error', data.message);
             }

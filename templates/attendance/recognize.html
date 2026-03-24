@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <div class="card" style="max-width: 600px; margin: 0 auto; text-align: center;">
     <h2>Mark Attendance</h2>
     <p style="color: var(--text-light); margin-bottom: 1.5rem;">Please look at the camera to mark your attendance.</p>
@@ -89,6 +90,21 @@
             } else {
                 // error / unknown person
                 videoContainer.style.borderColor = '#ef4444'; // red
+                if (data.message === 'Unknown person' || data.message === 'No registered students found') {
+                    stopScanning();
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Face Not Recognized',
+                        text: 'Please register first before marking attendance.',
+                        confirmButtonText: 'Go to Registration',
+                        confirmButtonColor: '#4f46e5',
+                        allowOutsideClick: false
+                    }).then((result) => {
+                        window.location.href = "{% url 'register' %}";
+                    });
+                } else if (data.message && data.message !== 'No face found in image') {
+                    showAlert('error', data.message);
+                }
             }
         } catch (err) {
             console.error(err);
