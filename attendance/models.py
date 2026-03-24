@@ -10,6 +10,23 @@ class Student(models.Model):
         ('4th Year', '4th Year'),
     ]
     year = models.CharField(max_length=20, choices=YEAR_CHOICES, null=True, blank=True)
+    
+    GENDER_CHOICES = [
+        ('Male', 'Male'),
+        ('Female', 'Female'),
+        ('Other', 'Other'),
+    ]
+    gender = models.CharField(max_length=20, choices=GENDER_CHOICES, null=True, blank=True)
+    
+    DEPARTMENT_CHOICES = [
+        ('CS', 'Computer Science'),
+        ('IT', 'Information Technology'),
+        ('ECE', 'Electronics and Communication'),
+        ('ME', 'Mechanical Engineering'),
+        ('CE', 'Civil Engineering'),
+    ]
+    department = models.CharField(max_length=50, choices=DEPARTMENT_CHOICES, null=True, blank=True)
+    
     # Storing face encoding as a JSON string for SQLite compatibility
     face_encoding = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)

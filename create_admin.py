@@ -9,9 +9,14 @@ django.setup()
 
 from django.contrib.auth.models import User
 
-# Create admin if it doesn't exist
-if not User.objects.filter(username='admin').exists():
+# Create admin if it doesn't exist, or update password if it does
+user = User.objects.filter(username='admin').first()
+if not user:
     User.objects.create_superuser('admin', 'admin@example.com', 'admin')
-    print("SUCCESS: Default 'admin' user created.")
+    print("SUCCESS: Default 'admin' user created with password 'admin'.")
 else:
-    print("SUCCESS: 'admin' user already exists.")
+    user.set_password('admin')
+    user.is_superuser = True
+    user.is_staff = True
+    user.save()
+    print("SUCCESS: 'admin' user password reset to 'admin'.")

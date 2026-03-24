@@ -20,6 +20,24 @@
             <option value="4th Year">4th Year</option>
         </select>
 
+        <label for="studentGender" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Gender</label>
+        <select id="studentGender" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+        </select>
+
+        <label for="studentDepartment" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Department</label>
+        <select id="studentDepartment" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+            <option value="">Select Department</option>
+            <option value="CS">Computer Science</option>
+            <option value="IT">Information Technology</option>
+            <option value="ECE">Electronics and Communication</option>
+            <option value="ME">Mechanical Engineering</option>
+            <option value="CE">Civil Engineering</option>
+        </select>
+
         <label for="studentName" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Student Name</label>
         <input type="text" id="studentName" placeholder="John Doe" 
                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px;">
@@ -42,6 +60,8 @@
     const studentNameInput = document.getElementById('studentName');
     const studentIdInput = document.getElementById('studentId');
     const studentYearSelect = document.getElementById('studentYear');
+    const studentGenderSelect = document.getElementById('studentGender');
+    const studentDepartmentSelect = document.getElementById('studentDepartment');
     const alertBox = document.getElementById('alertBox');
 
     // Access webcam
@@ -63,9 +83,11 @@
         const name = studentNameInput.value.trim();
         const studentId = studentIdInput.value.trim();
         const year = studentYearSelect.value;
+        const gender = studentGenderSelect.value;
+        const department = studentDepartmentSelect.value;
 
-        if (!studentId || !year || !name) {
-            showAlert('error', 'Please fill in Student ID, Year, and Name.');
+        if (!studentId || !year || !gender || !department || !name) {
+            showAlert('error', 'Please fill in Student ID, Year, Gender, Department, and Name.');
             return;
         }
 
@@ -86,7 +108,7 @@
             const response = await fetch('/api/register_face/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name, student_id: studentId, year: year, image: imageData })
+                body: JSON.stringify({ name: name, student_id: studentId, year: year, gender: gender, department: department, image: imageData })
             });
 
             const data = await response.json();
@@ -96,6 +118,8 @@
                 studentNameInput.value = '';
                 studentIdInput.value = '';
                 studentYearSelect.value = '';
+                studentGenderSelect.value = '';
+                studentDepartmentSelect.value = '';
             } else {
                 showAlert('error', data.message);
             }

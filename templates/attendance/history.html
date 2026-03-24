@@ -7,12 +7,27 @@
         <div style="display: flex; gap: 1rem; align-items: center;">
             <form method="GET" style="display: flex; gap: 0.5rem; align-items: center;">
                 <input type="date" name="date" value="{{ selected_date }}" style="padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border);">
+                <select name="department" style="padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border);">
+                    <option value="">All Departments</option>
+                    <option value="CS" {% if selected_dept == 'CS' %}selected{% endif %}>CS</option>
+                    <option value="IT" {% if selected_dept == 'IT' %}selected{% endif %}>IT</option>
+                    <option value="ECE" {% if selected_dept == 'ECE' %}selected{% endif %}>ECE</option>
+                    <option value="ME" {% if selected_dept == 'ME' %}selected{% endif %}>ME</option>
+                    <option value="CE" {% if selected_dept == 'CE' %}selected{% endif %}>CE</option>
+                </select>
+                <select name="year" style="padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border);">
+                    <option value="">All Years</option>
+                    <option value="1st Year" {% if selected_year == '1st Year' %}selected{% endif %}>1st Year</option>
+                    <option value="2nd Year" {% if selected_year == '2nd Year' %}selected{% endif %}>2nd Year</option>
+                    <option value="3rd Year" {% if selected_year == '3rd Year' %}selected{% endif %}>3rd Year</option>
+                    <option value="4th Year" {% if selected_year == '4th Year' %}selected{% endif %}>4th Year</option>
+                </select>
                 <button type="submit" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Filter</button>
-                {% if selected_date %}
+                {% if selected_date or selected_dept or selected_year %}
                 <a href="{% url 'history' %}" class="btn" style="background: #e2e8f0; color: #475569; padding: 0.5rem 1rem; text-decoration: none; border-radius: 6px;">Clear</a>
                 {% endif %}
             </form>
-            <a href="{% url 'export_csv' %}?date={{ selected_date }}" class="btn btn-secondary">Download CSV</a>
+            <a href="{% url 'export_csv' %}?date={{ selected_date }}&department={{ selected_dept }}&year={{ selected_year }}" class="btn btn-secondary">Download CSV</a>
         </div>
     </div>
 
@@ -22,6 +37,9 @@
             <tr>
                 <th>Student ID</th>
                 <th>Student Name</th>
+                <th>Gender</th>
+                <th>Department</th>
+                <th>Year</th>
                 <th>Date</th>
                 <th>Time</th>
             </tr>
@@ -31,6 +49,9 @@
             <tr>
                 <td style="font-weight: 500;">{{ record.student.student_id|default:"N/A" }}</td>
                 <td style="font-weight: 500;">{{ record.student.name }}</td>
+                <td>{{ record.student.gender|default:"N/A" }}</td>
+                <td>{{ record.student.department|default:"N/A" }}</td>
+                <td>{{ record.student.year|default:"N/A" }}</td>
                 <td>{{ record.date }}</td>
                 <td>{{ record.time }}</td>
             </tr>
