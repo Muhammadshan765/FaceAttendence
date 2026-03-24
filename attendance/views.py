@@ -9,11 +9,17 @@ from .models import Student, Attendance
 from .utils import get_face_encoding, match_face, encoding_to_string, string_to_encoding
 
 def dashboard(request):
-    recent_attendance = Attendance.objects.select_related('student').order_by('-date', '-time')[:10]
+    date_filter = request.GET.get('date')
+    if date_filter:
+        recent_attendance = Attendance.objects.filter(date=date_filter).select_related('student').order_by('-date', '-time')[:10]
+    else:
+        recent_attendance = Attendance.objects.select_related('student').order_by('-date', '-time')[:10]
+        
     context = {
         'recent_attendance': recent_attendance,
         'total_students': Student.objects.count(),
-        'today_attendance': Attendance.objects.filter(date=datetime.now().date()).count()
+        'today_attendance': Attendance.objects.filter(date=datetime.now().date()).count(),
+        'selected_date': date_filter or ''
     }
     return render(request, 'attendance/dashboard.html', context)
 
@@ -24,8 +30,12 @@ def recognize(request):
     return render(request, 'attendance/recognize.html')
 
 def history(request):
-    attendance_records = Attendance.objects.select_related('student').order_by('-date', '-time')
-    return render(request, 'attendance/history.html', {'records': attendance_records})
+    date_filter = request.GET.get('date')
+    if date_filter:
+        attendance_records = Attendance.objects.filter(date=date_filter).select_related('student').order_by('-date', '-time')
+    else:
+        attendance_records = Attendance.objects.select_related('student').order_by('-date', '-time')
+    return render(request, 'attendance/history.html', {'records': attendance_records, 'selected_date': date_filter or ''})
 
 @csrf_exempt
 def register_face(request):
@@ -33,18 +43,20 @@ def register_face(request):
         try:
             data = json.loads(request.body)
             name = data.get('name')
+            student_id = data.get('student_id')
+            year = data.get('year')
             image_b64 = data.get('image')
 
-            if not name or not image_b64:
-                return JsonResponse({'status': 'error', 'message': 'Name and image are required'})
+            if not name or not student_id or not year or not image_b64:
+                return JsonResponse({'status': 'error', 'message': 'Name, Student ID, Year, and Image are required'})
 
             encoding, error = get_face_encoding(image_b64)
             if error:
                 return JsonResponse({'status': 'error', 'message': error})
 
             # Check if user already exists
-            if Student.objects.filter(name=name).exists():
-                return JsonResponse({'status': 'error', 'message': 'Student with this name already exists'})
+            if Student.objects.filter(student_id=student_id).exists():
+                return JsonResponse({'status': 'error', 'message': 'Student with this ID already exists'})
 
             # Check if face already exists
             students = list(Student.objects.all())
@@ -53,13 +65,13 @@ def register_face(request):
                 match_idx = match_face(encoding, known_encodings)
                 if match_idx is not None:
                     matched_student = students[match_idx]
-                    return JsonResponse({'status': 'error', 'message': f'Face already registered to {matched_student.name}'})
+                    return JsonResponse({'status': 'error', 'message': f'Face already registered to {matched_student.name} ({matched_student.student_id})'})
 
             # Save to DB
             encoding_str = encoding_to_string(encoding)
-            Student.objects.create(name=name, face_encoding=encoding_str)
+            Student.objects.create(name=name, student_id=student_id, year=year, face_encoding=encoding_str)
 
-            return JsonResponse({'status': 'success', 'message': f'Successfully registered {name}'})
+            return JsonResponse({'status': 'success', 'message': f'Successfully registered {name} ({student_id})'})
             
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)})
@@ -121,10 +133,21 @@ def export_csv(request):
     response['Content-Disposition'] = 'attachment; filename="attendance_records.csv"'
 
     writer = csv.writer(response)
-    writer.writerow(['Name', 'Date', 'Time'])
+    writer.writerow(['Student ID', 'Name', 'Year', 'Date', 'Time'])
 
-    attendance_records = Attendance.objects.select_related('student').order_by('-date', '-time')
+    date_filter = request.GET.get('date')
+    if date_filter:
+        attendance_records = Attendance.objects.filter(date=date_filter).select_related('student').order_by('-date', '-time')
+    else:
+        attendance_records = Attendance.objects.select_related('student').order_by('-date', '-time')
+
     for record in attendance_records:
-        writer.writerow([record.student.name, record.date, record.time])
+        writer.writerow([
+            record.student.student_id or 'N/A', 
+            record.student.name, 
+            record.student.year or 'N/A', 
+            record.date.strftime('%d %b %Y') if record.date else 'N/A', 
+            record.time.strftime('%I:%M %p') if record.time else 'N/A'
+        ])
 
     return response

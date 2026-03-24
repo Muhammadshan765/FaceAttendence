@@ -7,6 +7,19 @@
     <div id="alertBox" class="alert"></div>
 
     <div style="margin-bottom: 1.5rem; text-align: left;">
+        <label for="studentId" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Student ID</label>
+        <input type="text" id="studentId" placeholder="e.g. CS123" 
+               style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+               
+        <label for="studentYear" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Year</label>
+        <select id="studentYear" style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px; margin-bottom: 1rem;">
+            <option value="">Select Year</option>
+            <option value="1st Year">1st Year</option>
+            <option value="2nd Year">2nd Year</option>
+            <option value="3rd Year">3rd Year</option>
+            <option value="4th Year">4th Year</option>
+        </select>
+
         <label for="studentName" style="display: block; margin-bottom: 0.5rem; font-weight: 500;">Student Name</label>
         <input type="text" id="studentName" placeholder="John Doe" 
                style="width: 100%; padding: 0.75rem; border: 1px solid var(--border); border-radius: 6px;">
@@ -27,6 +40,8 @@
     const canvas = document.getElementById('canvas');
     const captureBtn = document.getElementById('captureBtn');
     const studentNameInput = document.getElementById('studentName');
+    const studentIdInput = document.getElementById('studentId');
+    const studentYearSelect = document.getElementById('studentYear');
     const alertBox = document.getElementById('alertBox');
 
     // Access webcam
@@ -46,8 +61,11 @@
 
     captureBtn.addEventListener('click', async () => {
         const name = studentNameInput.value.trim();
-        if (!name) {
-            showAlert('error', 'Please enter student name');
+        const studentId = studentIdInput.value.trim();
+        const year = studentYearSelect.value;
+
+        if (!studentId || !year || !name) {
+            showAlert('error', 'Please fill in Student ID, Year, and Name.');
             return;
         }
 
@@ -68,7 +86,7 @@
             const response = await fetch('/api/register_face/', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ name: name, image: imageData })
+                body: JSON.stringify({ name: name, student_id: studentId, year: year, image: imageData })
             });
 
             const data = await response.json();
@@ -76,6 +94,8 @@
             if (data.status === 'success') {
                 showAlert('success', data.message);
                 studentNameInput.value = '';
+                studentIdInput.value = '';
+                studentYearSelect.value = '';
             } else {
                 showAlert('error', data.message);
             }

@@ -4,13 +4,23 @@
 <div class="card">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
         <h2>Attendance History</h2>
-        <a href="{% url 'export_csv' %}" class="btn btn-secondary">Download CSV</a>
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <form method="GET" style="display: flex; gap: 0.5rem; align-items: center;">
+                <input type="date" name="date" value="{{ selected_date }}" style="padding: 0.5rem; border-radius: 4px; border: 1px solid var(--border);">
+                <button type="submit" class="btn btn-secondary" style="padding: 0.5rem 1rem;">Filter</button>
+                {% if selected_date %}
+                <a href="{% url 'history' %}" class="btn" style="background: #e2e8f0; color: #475569; padding: 0.5rem 1rem; text-decoration: none; border-radius: 6px;">Clear</a>
+                {% endif %}
+            </form>
+            <a href="{% url 'export_csv' %}?date={{ selected_date }}" class="btn btn-secondary">Download CSV</a>
+        </div>
     </div>
 
     {% if records %}
     <table>
         <thead>
             <tr>
+                <th>Student ID</th>
                 <th>Student Name</th>
                 <th>Date</th>
                 <th>Time</th>
@@ -19,6 +29,7 @@
         <tbody>
             {% for record in records %}
             <tr>
+                <td style="font-weight: 500;">{{ record.student.student_id|default:"N/A" }}</td>
                 <td style="font-weight: 500;">{{ record.student.name }}</td>
                 <td>{{ record.date }}</td>
                 <td>{{ record.time }}</td>
